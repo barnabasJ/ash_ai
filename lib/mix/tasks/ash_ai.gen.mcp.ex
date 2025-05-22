@@ -116,7 +116,8 @@ if Code.ensure_loaded?(Igniter) do
                # You will need to set the `protocol_version_statement` to the
                # older version.
                protocol_version_statement: "2024-11-05",
-               otp_app: :#{otp_app}
+               otp_app: :#{otp_app},
+               path: "/mcp/ash"
              """,
              placement: :before
            )}

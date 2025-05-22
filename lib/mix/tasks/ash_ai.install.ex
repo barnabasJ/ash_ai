@@ -71,7 +71,7 @@ if Code.ensure_loaded?(Igniter) do
         {igniter, router} =
           Igniter.Libs.Phoenix.select_router(
             igniter,
-            "Which router's endpoint should we instal the dev MCP in?"
+            "Which router's endpoint should we install the dev MCP in?"
           )
 
         if router do

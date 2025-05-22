@@ -10,7 +10,8 @@ Both the dev & production MCP servers can be installed with
 ### Dev MCP Server
 
 To install the dev MCP server, add the `AshAi.Mcp.Dev` plug to your
-endpoint module, in the `code_reloading?` block.
+endpoint module, in the `code_reloading?` block. This exposes the Ash
+dev MCP at /mcp/ash
 
 
 ```elixir

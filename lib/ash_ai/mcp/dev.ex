@@ -2,7 +2,7 @@ defmodule AshAi.Mcp.Dev do
   @moduledoc """
   Place in your endpoint's code_reloading section to expose Ash dev MCP"
 
-  Default path is `/mcp/ash`
+  Default path is `/ash_ai/mcp`
   """
   @behaviour Plug
 
@@ -10,7 +10,7 @@ defmodule AshAi.Mcp.Dev do
   def init(opts) do
     path =
       opts
-      |> Keyword.get(:path, "/mcp/ash")
+      |> Keyword.get(:path, "/ash_ai/mcp")
       |> String.split("/")
       |> Enum.reject(&(&1 == ""))
 
@@ -26,14 +26,14 @@ defmodule AshAi.Mcp.Dev do
   def call(%Plug.Conn{path_info: path_info} = conn, opts) do
     expected_path = Keyword.get(opts, :path)
 
-    if List.starts_with?(path_info, expected_path) do
-      rest = Enum.drop(path_info, length(expected_path))
+    case Enum.split(path_info, length(expected_path)) do
+      {^expected_path, rest} ->
+        conn
+        |> Plug.forward(rest, AshAi.Mcp.Router, opts)
+        |> Plug.Conn.halt()
 
-      conn
-      |> Plug.forward(rest, AshAi.Mcp.Router, opts)
-      |> Plug.Conn.halt()
-    else
-      conn
+      _ ->
+        conn
     end
   end
 end

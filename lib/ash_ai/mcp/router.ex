@@ -47,6 +47,8 @@ if Code.ensure_loaded?(Plug) do
         {:ok, _pid} ->
           # Delegate to Hermes transport handler
           # Hermes.Transport.StreamableHTTP handles the HTTP/SSE protocol
+          # Note: This assumes Hermes provides a `call/2` function for Plug integration
+          # If the API differs, this will need adjustment when dependencies are installed
           Hermes.Transport.StreamableHTTP.call(conn, server_name)
 
         {:error, reason} ->

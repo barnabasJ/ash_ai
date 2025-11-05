@@ -4,35 +4,35 @@
 
 defmodule AshAi.Mcp do
   @moduledoc """
-  Model Context Protocol (MCP) implementation for Ash Framework.
+  Model Context Protocol (MCP) implementation for Ash Framework using Hermes MCP.
 
-  This module implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server
-  that integrates with Ash Framework, following the MCP [Streamable HTTP Transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) specification.
+  This module provides a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server
+  that integrates with Ash Framework, powered by [Hermes MCP](https://hexdocs.pm/hermes_mcp/).
 
   ## Overview
 
   This MCP implementation provides:
 
-  * A fully compliant MCP server with JSON-RPC message processing
-  * Session management with unique session IDs
-  * Support for both JSON and Server-Sent Events (SSE) responses
-  * Batch request handling
-  * A foundation for integrating Ash resources with MCP clients
-  * Integration with AshAi tools for AI-assisted operations
+  * A fully compliant MCP server powered by Hermes MCP SDK
+  * Support for both JSON and Server-Sent Events (SSE) responses via Streamable HTTP transport
+  * Automatic tool registration from AshAi functions
+  * Integration with Ash resources and authentication
+  * Production-ready server implementation with supervision
 
   ## Current Features
 
-  * `initialize` and `shutdown` method handlers
-  * Session management via GenServer processes
-  * Support for streaming responses
+  * Protocol-compliant initialization and tool handling
+  * Automatic tool discovery from AshAi tool definitions
+  * Actor, tenant, and context support from Ash.PlugHelpers
+  * Dynamic server instance management
   * Plug-compatible router for easy integration
-  * Tool support for AshAi functions
+  * Dev mode support with ash_dev_tools
 
   ## Future Enhancements
 
   * OAuth integration with AshAuthentication
-  * Resource-specific method handlers
-  * Advanced streaming capabilities
+  * Resource and prompt support
+  * Advanced capabilities (sampling, logging, etc.)
 
   ## Integration
 

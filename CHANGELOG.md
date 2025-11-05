@@ -11,6 +11,12 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [Unreleased]
+
+### Improvements:
+
+* Replace custom MCP server implementation with Hermes MCP SDK
+
 ## [v0.3.0](https://github.com/ash-project/ash_ai/compare/v0.2.14...v0.3.0) (2025-10-28)
 
 

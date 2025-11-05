@@ -155,11 +155,12 @@ defmodule AshAi.MixProject do
       {:ash_json_api, "~> 1.4 and >= 1.4.27"},
       {:open_api_spex, "~> 3.0"},
       {:langchain, "~> 0.4"},
+      {:hermes_mcp, "~> 0.14.1"},
       {:ash_postgres, "~> 2.5", optional: true},
       {:ash_oban, "~> 0.5", optional: true},
       {:ash_phoenix, "~> 2.0", optional: true},
       {:igniter, "~> 0.5", optional: true},
-      {:plug, "~> 1.17", optional: true},
+      {:plug, "~> 1.18", optional: true},
       {:ash_authentication, "~> 4.8", optional: true},
       # dev/test deps
       {:phx_new, "~> 1.7", optional: true},

@@ -8,8 +8,15 @@ defmodule AshAi.Application do
 
   @impl true
   def start(_type, _args) do
+    children = [
+      # Hermes Server Registry for MCP servers
+      Hermes.Server.Registry,
+      # Dynamic supervisor for MCP server instances
+      {DynamicSupervisor, name: AshAi.Mcp.DynamicSupervisor, strategy: :one_for_one}
+    ]
+
     Supervisor.start_link(
-      [],
+      children,
       strategy: :one_for_one,
       name: AshAi.Supervisor
     )

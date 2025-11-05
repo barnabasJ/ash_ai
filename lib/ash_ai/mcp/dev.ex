@@ -31,10 +31,9 @@ defmodule AshAi.Mcp.Dev do
     expected_path = Keyword.get(opts, :path)
 
     case Enum.split(path_info, length(expected_path)) do
-      {^expected_path, rest} ->
-        conn
-        |> Plug.forward(rest, AshAi.Mcp.Router, opts)
-        |> Plug.Conn.halt()
+      {^expected_path, _rest} ->
+        # Forward to the router with tools set to ash_dev_tools
+        AshAi.Mcp.Router.call(conn, opts)
 
       _ ->
         conn

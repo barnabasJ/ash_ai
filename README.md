@@ -43,6 +43,9 @@ end
 
 ## MCP (Model Context Protocol) Server
 
+AshAi provides MCP server functionality powered by [Hermes MCP](https://hexdocs.pm/hermes_mcp/),
+a comprehensive Elixir SDK for the Model Context Protocol.
+
 Both the dev & production MCP servers can be installed with
 
 `mix ash_ai.gen.mcp`

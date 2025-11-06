@@ -23,7 +23,7 @@ defmodule AshAi.Mcp.Dev do
       |> Keyword.put(:tools, :ash_dev_tools)
       |> Keyword.put(:path, path)
 
-    AshAi.Mcp.Router.init(opts)
+    AshAi.Mcp.Plug.init(opts)
   end
 
   @impl true
@@ -33,7 +33,7 @@ defmodule AshAi.Mcp.Dev do
     case Enum.split(path_info, length(expected_path)) do
       {^expected_path, rest} ->
         conn
-        |> Plug.forward(rest, AshAi.Mcp.Router, opts)
+        |> Plug.forward(rest, AshAi.Mcp.Plug, opts)
         |> Plug.Conn.halt()
 
       _ ->

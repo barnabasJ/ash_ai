@@ -43,6 +43,8 @@ end
 
 ## MCP (Model Context Protocol) Server
 
+**Note**: As of v0.4.0, AshAi uses the [Hermes MCP SDK](https://hex.pm/packages/hermes_mcp) for robust, spec-compliant MCP protocol handling. This provides better SSE support, cleaner session management, and aligns with industry standards.
+
 Both the dev & production MCP servers can be installed with
 
 `mix ash_ai.gen.mcp`

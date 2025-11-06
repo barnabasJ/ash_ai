@@ -62,11 +62,11 @@ defmodule AshAi.Mcp.HermesServerTest do
 
       # Verify content is properly formatted
       [first_content | _] = result.content
-      assert first_content.type == "text"
-      assert is_binary(first_content.text)
+      assert first_content["type"] == "text"
+      assert is_binary(first_content["text"])
 
       # Verify artist is in results
-      assert String.contains?(first_content.text, artist.name)
+      assert String.contains?(first_content["text"], artist.name)
     end
 
     test "executes tool with empty arguments" do
@@ -159,9 +159,9 @@ defmodule AshAi.Mcp.HermesServerTest do
       assert is_list(result.content)
 
       Enum.each(result.content, fn item ->
-        assert Map.has_key?(item, :type)
-        assert Map.has_key?(item, :text)
-        assert item.type == "text"
+        assert Map.has_key?(item, "type")
+        assert Map.has_key?(item, "text")
+        assert item["type"] == "text"
       end)
     end
   end

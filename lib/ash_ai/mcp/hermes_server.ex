@@ -37,6 +37,8 @@ defmodule AshAi.Mcp.HermesServer do
     version: "0.3.0",
     capabilities: [:tools]
 
+  alias Hermes.Server.Response
+
   @doc """
   Initializes the server with client information.
 
@@ -67,9 +69,27 @@ defmodule AshAi.Mcp.HermesServer do
   def init(_client_info, frame) do
     # Server info is handled by Hermes.Server automatically
     # based on the `use Hermes.Server` options above
-    #
-    # Tool registration will be implemented in upcoming tasks after
-    # ToolBridge and ContextMapper modules are created
+
+    # Get configuration from frame assigns (set by AshAi.Mcp.Plug)
+    config = frame.assigns[:ash_ai_mcp_config] || %{}
+
+    domains = Map.get(config, :domains, [])
+    tool_filter = Map.get(config, :tools)
+
+    # Get Hermes tool definitions from AshAi domains
+    hermes_tools = AshAi.Mcp.ToolBridge.to_hermes_tools(domains, tool_filter)
+
+    # Register each tool with Hermes
+    # Note: We use %{} for input_schema because ToolBridge generates JSON Schema
+    # but Hermes expects Peri format. Tool arguments are validated when executed.
+    frame =
+      Enum.reduce(hermes_tools, frame, fn tool, acc_frame ->
+        Hermes.Server.Frame.register_tool(acc_frame, tool.name, [
+          description: tool.description,
+          input_schema: %{}
+        ])
+      end)
+
     {:ok, frame}
   end
 
@@ -98,8 +118,22 @@ defmodule AshAi.Mcp.HermesServer do
     # Extract context from frame
     context = AshAi.Mcp.ContextMapper.from_frame(frame)
 
-    # Get opts from frame assigns (set during init or by router)
-    opts = frame.assigns[:opts] || []
+    # Get configuration from frame assigns (set by AshAi.Mcp.Plug or tests)
+    # Support both :ash_ai_mcp_config (from Plug) and :opts (from tests)
+    config = frame.assigns[:ash_ai_mcp_config] || frame.assigns[:opts] || %{}
+
+    # Convert config to keyword list if it's a map
+    opts = if is_map(config) do
+      [
+        tools: Map.get(config, :tools, :all),
+        tool_filter: Map.get(config, :tool_filter),
+        otp_app: Map.get(config, :otp_app)
+      ]
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+    else
+      # Already a keyword list
+      config
+    end
 
     # Merge context into opts
     merged_opts = Keyword.merge(opts, context)
@@ -139,9 +173,12 @@ defmodule AshAi.Mcp.HermesServer do
         # Execute the tool with arguments and context
         case execute_tool(tool_function, arguments, context) do
           {:ok, result} ->
-            # Format successful result as MCP content
-            formatted = format_success_result(result)
-            {:reply, formatted, frame}
+            # Build Response struct using Hermes builders
+            response =
+              Response.tool()
+              |> Response.text(result)
+
+            {:reply, response, frame}
 
           {:error, reason} ->
             # Format error for MCP protocol
@@ -162,41 +199,23 @@ defmodule AshAi.Mcp.HermesServer do
     try do
       result = tool_function.function.(arguments, context)
 
-      # Check if the result is an error tuple from Ash
+      # Tool functions return {status, json_string, records} tuple
+      # Extract just the JSON string for the MCP response
       case result do
+        {:ok, json_string, _records} when is_binary(json_string) ->
+          {:ok, json_string}
+
         {:error, reason} ->
           {:error, reason}
 
         other ->
+          # Fallback for unexpected formats
           {:ok, other}
       end
     rescue
       error ->
         {:error, error}
     end
-  end
-
-  defp format_success_result(result) when is_binary(result) do
-    # String result - wrap in MCP content format
-    %{content: [%{type: "text", text: result}]}
-  end
-
-  defp format_success_result(result) when is_list(result) do
-    # List result - convert to JSON and wrap
-    json = Jason.encode!(result, pretty: true)
-    %{content: [%{type: "text", text: json}]}
-  end
-
-  defp format_success_result(result) when is_map(result) and not is_struct(result) do
-    # Map result - convert to JSON and wrap
-    json = Jason.encode!(result, pretty: true)
-    %{content: [%{type: "text", text: json}]}
-  end
-
-  defp format_success_result(result) do
-    # Struct or other type - use inspect
-    text = inspect(result, pretty: true)
-    %{content: [%{type: "text", text: text}]}
   end
 
   defp format_error(code, message) do

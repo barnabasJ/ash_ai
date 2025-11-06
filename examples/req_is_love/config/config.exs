@@ -8,7 +8,8 @@
 import Config
 
 config :req_is_love,
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  ash_domains: [ReqIsLove.Demo]
 
 # Configures the endpoint
 config :req_is_love, ReqIsLoveWeb.Endpoint,

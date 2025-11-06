@@ -94,9 +94,143 @@ defmodule AshAi.Mcp.HermesServer do
   The result is formatted as MCP content with appropriate type information.
   """
   @impl true
-  def handle_tool_call(_name, _arguments, frame) do
-    # Full implementation will be added in Task 6 after ToolBridge
-    # and ContextMapper modules are available
-    {:reply, %{content: [%{type: "text", text: "Not yet implemented"}]}, frame}
+  def handle_tool_call(name, arguments, frame) do
+    # Extract context from frame
+    context = AshAi.Mcp.ContextMapper.from_frame(frame)
+
+    # Get opts from frame assigns (set during init or by router)
+    opts = frame.assigns[:opts] || []
+
+    # Merge context into opts
+    merged_opts = Keyword.merge(opts, context)
+
+    # Get all tool functions - handle errors gracefully
+    case try_get_functions(merged_opts) do
+      {:ok, functions} ->
+        # Continue with tool execution
+        execute_tool_by_name(name, arguments, functions, context, frame)
+
+      {:error, reason} ->
+        # Failed to load tools
+        error = format_error(-32602, "Failed to load tools: #{reason}")
+        {:error, error, frame}
+    end
+  end
+
+  # Private helper to safely get functions
+  defp try_get_functions(opts) do
+    try do
+      {:ok, AshAi.functions(opts)}
+    rescue
+      error ->
+        {:error, Exception.message(error)}
+    end
+  end
+
+  # Private helper to execute tool by name
+  defp execute_tool_by_name(name, arguments, functions, context, frame) do
+    # Find the specific tool by name
+    case Enum.find(functions, fn func -> to_string(func.name) == to_string(name) end) do
+      nil ->
+        error = format_error(-32601, "Tool '#{name}' not found")
+        {:error, error, frame}
+
+      tool_function ->
+        # Execute the tool with arguments and context
+        case execute_tool(tool_function, arguments, context) do
+          {:ok, result} ->
+            # Format successful result as MCP content
+            formatted = format_success_result(result)
+            {:reply, formatted, frame}
+
+          {:error, reason} ->
+            # Format error for MCP protocol
+            error = format_execution_error(reason)
+            {:error, error, frame}
+        end
+    end
+  end
+
+  # Private helper functions for tool execution
+
+  defp execute_tool(tool_function, arguments, context) do
+    # Handle nil arguments from MCP clients
+    arguments = arguments || %{}
+
+    # Execute the LangChain.Function with context
+    # The function expects (arguments, context) as parameters
+    try do
+      result = tool_function.function.(arguments, context)
+
+      # Check if the result is an error tuple from Ash
+      case result do
+        {:error, reason} ->
+          {:error, reason}
+
+        other ->
+          {:ok, other}
+      end
+    rescue
+      error ->
+        {:error, error}
+    end
+  end
+
+  defp format_success_result(result) when is_binary(result) do
+    # String result - wrap in MCP content format
+    %{content: [%{type: "text", text: result}]}
+  end
+
+  defp format_success_result(result) when is_list(result) do
+    # List result - convert to JSON and wrap
+    json = Jason.encode!(result, pretty: true)
+    %{content: [%{type: "text", text: json}]}
+  end
+
+  defp format_success_result(result) when is_map(result) and not is_struct(result) do
+    # Map result - convert to JSON and wrap
+    json = Jason.encode!(result, pretty: true)
+    %{content: [%{type: "text", text: json}]}
+  end
+
+  defp format_success_result(result) do
+    # Struct or other type - use inspect
+    text = inspect(result, pretty: true)
+    %{content: [%{type: "text", text: text}]}
+  end
+
+  defp format_error(code, message) do
+    %{
+      code: code,
+      message: message
+    }
+  end
+
+  defp format_execution_error(%Ash.Error.Invalid{} = error) do
+    # Ash validation error - extract messages
+    message = Exception.message(error)
+
+    %{
+      code: -32603,
+      message: "Tool execution failed: #{message}"
+    }
+  end
+
+  defp format_execution_error(error) when is_exception(error) do
+    # Generic exception
+    message = Exception.message(error)
+
+    %{
+      code: -32603,
+      message: "Tool execution failed: #{message}"
+    }
+  end
+
+  defp format_execution_error(error) do
+    # Unknown error type
+    %{
+      code: -32603,
+      message: "Tool execution failed: #{inspect(error)}"
+    }
   end
 end

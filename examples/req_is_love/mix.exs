@@ -40,6 +40,7 @@ defmodule ReqIsLove.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ash_ai, [path: "../../", override: true]},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:phoenix, "~> 1.8.1"},
       {:phoenix_html, "~> 4.1"},
@@ -63,7 +64,9 @@ defmodule ReqIsLove.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:usage_rules, path: "../../../usage_rules", only: [:dev]},
+      {:tidewave, "~> 0.5", only: [:dev]}
     ]
   end
 

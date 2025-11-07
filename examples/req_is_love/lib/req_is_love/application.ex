@@ -11,8 +11,6 @@ defmodule ReqIsLove.Application do
       ReqIsLoveWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:req_is_love, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: ReqIsLove.PubSub},
-      # Start a worker by calling: ReqIsLove.Worker.start_link(arg)
-      # {ReqIsLove.Worker, arg},
       # Start to serve requests, typically the last entry
       ReqIsLoveWeb.Endpoint
     ]

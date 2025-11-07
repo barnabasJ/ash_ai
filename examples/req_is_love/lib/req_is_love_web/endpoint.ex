@@ -26,6 +26,17 @@ defmodule ReqIsLoveWeb.Endpoint do
     gzip: not code_reloading?,
     only: ReqIsLoveWeb.static_paths()
 
+  if Code.ensure_loaded?(Tidewave) do
+    plug Tidewave
+  end
+
+  # MCP endpoint for demonstration (always enabled in this example app)
+  plug AshAi.Mcp.Dev,
+    # For many tools, you will need to set the `protocol_version_statement` to the older version.
+    protocol_version_statement: "2024-11-05",
+    otp_app: :req_is_love,
+    path: "/ash_ai/mcp"
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do

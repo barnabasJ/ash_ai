@@ -8,6 +8,10 @@ config :req_is_love, ReqIsLoveWeb.Endpoint,
   secret_key_base: "uimYVx+ijmqXyxF2ZQWS0hDPL6x6SQY0yeiQbU+fkDYeB2BtR2jpuxzOtQwW10qz",
   server: true
 
+# CRITICAL: Force MCP transport to start in test environment
+# Hard-won pattern from transport lifecycle debugging
+config :ash_ai, :mcp_transport, start: true
+
 # In test we don't send emails
 config :req_is_love, ReqIsLove.Mailer, adapter: Swoosh.Adapters.Test
 

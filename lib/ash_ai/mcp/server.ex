@@ -254,7 +254,6 @@ defmodule AshAi.Mcp.Server do
             %{mcp_session_id: session_id},
             &Map.put(&1, :mcp_session_id, session_id)
           )
-          |> Keyword.put(:filter, fn tool -> tool.mcp == :tool end)
 
         opts
         |> tools()

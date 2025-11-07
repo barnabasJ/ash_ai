@@ -36,3 +36,7 @@ config :ash_ai, :oban,
   queues: [
     artist_oban_ash_ai_update_embeddings: 1
   ]
+
+# Force Hermes transport to start in test environment
+# (normally auto-detects when Phoenix is running)
+config :ash_ai, :mcp_transport, start: true

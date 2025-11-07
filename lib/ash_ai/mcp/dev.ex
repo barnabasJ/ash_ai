@@ -18,22 +18,36 @@ defmodule AshAi.Mcp.Dev do
       |> String.split("/")
       |> Enum.reject(&(&1 == ""))
 
+    # Get OTP app from opts (required for discovering domains)
+    otp_app = Keyword.get(opts, :otp_app)
+
+    # Discover domains from application config
+    domains =
+      if otp_app do
+        Application.get_env(otp_app, :ash_domains, [])
+      else
+        []
+      end
+
     opts =
       opts
       |> Keyword.put(:tools, :ash_dev_tools)
-      |> Keyword.put(:path, path)
+      |> Keyword.put(:domains, domains)
+      |> Keyword.put(:components, Keyword.get(opts, :components, []))
 
-    AshAi.Mcp.Router.init(opts)
+    # AshAi.Mcp.Plug.init returns {ash_ai_opts, hermes_opts} tuple
+    plug_opts = AshAi.Mcp.Plug.init(opts)
+
+    # Store path alongside plug_opts for routing
+    {path, plug_opts}
   end
 
   @impl true
-  def call(%Plug.Conn{path_info: path_info} = conn, opts) do
-    expected_path = Keyword.get(opts, :path)
-
+  def call(%Plug.Conn{path_info: path_info} = conn, {expected_path, plug_opts}) do
     case Enum.split(path_info, length(expected_path)) do
       {^expected_path, rest} ->
         conn
-        |> Plug.forward(rest, AshAi.Mcp.Router, opts)
+        |> Plug.forward(rest, AshAi.Mcp.Plug, plug_opts)
         |> Plug.Conn.halt()
 
       _ ->

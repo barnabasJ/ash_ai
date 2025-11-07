@@ -11,6 +11,22 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [Unreleased]
+
+### Breaking Changes:
+
+* **MCP Integration**: Migrated from custom MCP implementation to [Hermes MCP SDK](https://hex.pm/packages/hermes_mcp) v0.14.1
+  - Provides robust, spec-compliant MCP protocol handling
+  - Better SSE (Server-Sent Events) support
+  - Cleaner session management
+  - **Migration required**: See migration guide for updating existing MCP server configurations
+
+### Improvements:
+
+* MCP server now uses industry-standard Hermes library for protocol compliance
+* Enhanced MCP test coverage with proper protocol handshake testing
+* Configurable transport lifecycle for test environments
+
 ## [v0.3.0](https://github.com/ash-project/ash_ai/compare/v0.2.14...v0.3.0) (2025-10-28)
 
 

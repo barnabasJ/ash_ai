@@ -45,6 +45,14 @@ defmodule ReqIsLove.Demo.Task do
     update :complete do
       accept []
       change set_attribute(:completed, true)
+
+      change fn changeset, _context ->
+        IO.puts("\n=== COMPLETE ACTION CALLED ===")
+        IO.puts("Changeset data: #{inspect(changeset.data)}")
+        IO.puts("Changeset attributes: #{inspect(changeset.attributes)}")
+        IO.puts("==============================\n")
+        changeset
+      end
     end
   end
 

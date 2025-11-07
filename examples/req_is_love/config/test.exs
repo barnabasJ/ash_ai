@@ -2,10 +2,11 @@ import Config
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
+# NOTE: server: true is REQUIRED for Hermes MCP transport to start
 config :req_is_love, ReqIsLoveWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "uimYVx+ijmqXyxF2ZQWS0hDPL6x6SQY0yeiQbU+fkDYeB2BtR2jpuxzOtQwW10qz",
-  server: false
+  server: true
 
 # In test we don't send emails
 config :req_is_love, ReqIsLove.Mailer, adapter: Swoosh.Adapters.Test

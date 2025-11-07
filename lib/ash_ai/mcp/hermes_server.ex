@@ -35,7 +35,7 @@ defmodule AshAi.Mcp.HermesServer do
   use Hermes.Server,
     name: "AshAi MCP Server",
     version: "0.3.0",
-    capabilities: [:tools]
+    capabilities: [:tools, :resources]
 
   alias Hermes.Server.Response
   alias Hermes.MCP.Error
@@ -73,6 +73,9 @@ defmodule AshAi.Mcp.HermesServer do
 
     # Get configuration from frame assigns (set by AshAi.Mcp.Plug)
     config = frame.assigns[:ash_ai_mcp_config] || %{}
+    require Logger
+    Logger.debug("MCP init - config: #{inspect(config)}")
+    Logger.debug("MCP init - components: #{inspect(Map.get(config, :components, []))}")
 
     domains = Map.get(config, :domains, [])
     tool_filter = Map.get(config, :tools)
@@ -92,6 +95,23 @@ defmodule AshAi.Mcp.HermesServer do
           description: tool.description,
           input_schema: peri_schema
         ])
+      end)
+
+    # Register resource components
+    components = Map.get(config, :components, [])
+
+    frame =
+      Enum.reduce(components, frame, fn component, acc_frame ->
+        definition = component.definition()
+
+        Hermes.Server.Frame.register_resource(
+          acc_frame,
+          definition.uri,
+          name: definition.name,
+          description: definition.description,
+          mime_type: definition.mime_type,
+          title: Map.get(definition, :title)
+        )
       end)
 
     {:ok, frame}
@@ -337,5 +357,48 @@ defmodule AshAi.Mcp.HermesServer do
   defp categorize_tool_error(error) do
     # Unknown error types are execution errors (-32000)
     Error.execution("Tool execution failed: #{inspect(error)}")
+  end
+
+  @impl true
+  def handle_request(request, frame) do
+    Hermes.Server.Handlers.handle(request, __MODULE__, frame)
+  end
+
+  @doc """
+  Handles resource read requests from MCP clients.
+
+  Dispatches to the appropriate component's read/2 function based on the URI.
+  """
+  @impl true
+  def handle_resource_read(uri, frame) do
+    config = frame.assigns[:ash_ai_mcp_config] || %{}
+    components = Map.get(config, :components, [])
+
+    # Find the component that matches this URI
+    component =
+      Enum.find(components, fn comp ->
+        definition = comp.definition()
+        definition.uri == uri
+      end)
+
+    case component do
+      nil ->
+        error = Error.protocol(:invalid_params, %{message: "Resource not found: #{uri}"})
+        {:error, error, frame}
+
+      component ->
+        case component.read(uri, frame) do
+          {:ok, content} ->
+            response =
+              Response.resource()
+              |> Response.text(content)
+
+            {:reply, response, frame}
+
+          {:error, reason} ->
+            error = Error.execution("Resource read failed: #{inspect(reason)}")
+            {:error, error, frame}
+        end
+    end
   end
 end

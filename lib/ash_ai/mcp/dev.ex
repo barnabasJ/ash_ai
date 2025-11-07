@@ -33,6 +33,7 @@ defmodule AshAi.Mcp.Dev do
       opts
       |> Keyword.put(:tools, :ash_dev_tools)
       |> Keyword.put(:domains, domains)
+      |> Keyword.put(:components, Keyword.get(opts, :components, []))
 
     # AshAi.Mcp.Plug.init returns {ash_ai_opts, hermes_opts} tuple
     plug_opts = AshAi.Mcp.Plug.init(opts)

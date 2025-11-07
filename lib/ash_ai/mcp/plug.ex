@@ -48,7 +48,8 @@ if Code.ensure_loaded?(Plug) do
         domains: Keyword.get(opts, :domains, []),
         tools: Keyword.get(opts, :tools, :all),
         tool_filter: Keyword.get(opts, :tool_filter),
-        otp_app: Keyword.get(opts, :otp_app)
+        otp_app: Keyword.get(opts, :otp_app),
+        components: Keyword.get(opts, :components, [])
       }
 
       # Initialize Hermes Plug with server reference

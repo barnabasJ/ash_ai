@@ -82,13 +82,15 @@ defmodule AshAi.Mcp.ToolBridge do
   ## Parameters
 
     * `tools` - List of tool definitions from AshAi.Info.tools/1
-    * `filter` - List of tool names to include, or nil for all tools
+    * `filter` - List of tool names to include, :ash_dev_tools for dev tools, or nil for all tools
 
   ## Returns
 
   Filtered list of tools.
   """
   def filter_tools(tools, nil), do: tools
+  def filter_tools(tools, :all), do: tools
+  def filter_tools(tools, :ash_dev_tools), do: tools
 
   def filter_tools(tools, filter) when is_list(filter) do
     Enum.filter(tools, fn tool -> tool.name in filter end)
@@ -212,6 +214,9 @@ defmodule AshAi.Mcp.ToolBridge do
       :read ->
         read_properties(props, resource, action)
 
+      type when type in [:update, :destroy] ->
+        update_destroy_properties(props, resource, action, action_parameters)
+
       _ ->
         other_properties(props, resource, action, action_parameters)
     end
@@ -247,6 +252,21 @@ defmodule AshAi.Mcp.ToolBridge do
         props
       end
     end)
+  end
+
+  defp update_destroy_properties(props, resource, action, _action_parameters) do
+    # Add primary key fields for update/destroy actions
+    # This allows the tool to identify which record to update/destroy
+    pkey =
+      Map.new(Ash.Resource.Info.primary_key(resource), fn key ->
+        value =
+          Ash.Resource.Info.attribute(resource, key)
+          |> AshAi.OpenApi.resource_write_attribute_type(resource, action.type)
+
+        {key, value}
+      end)
+
+    Map.merge(props, pkey)
   end
 
   defp other_properties(props, _resource, _action, action_parameters) do

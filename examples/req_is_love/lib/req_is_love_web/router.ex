@@ -20,6 +20,11 @@ defmodule ReqIsLoveWeb.Router do
     get "/", PageController, :home
   end
 
+  # MCP endpoint for demonstration (always enabled in this example app)
+  forward "/ash_ai/mcp", AshAi.Mcp.Plug,
+    otp_app: :req_is_love,
+    components: [ReqIsLoveWeb.MCP.DemoSchemaResource]
+
   # Other scopes may use custom stacks.
   # scope "/api", ReqIsLoveWeb do
   #   pipe_through :api

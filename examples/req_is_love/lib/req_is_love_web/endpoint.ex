@@ -35,7 +35,8 @@ defmodule ReqIsLoveWeb.Endpoint do
     # For many tools, you will need to set the `protocol_version_statement` to the older version.
     protocol_version_statement: "2024-11-05",
     otp_app: :req_is_love,
-    path: "/ash_ai/mcp"
+    path: "/ash_ai/mcp",
+    components: [ReqIsLoveWeb.MCP.DemoSchemaResource]
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

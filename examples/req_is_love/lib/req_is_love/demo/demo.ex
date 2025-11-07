@@ -11,8 +11,8 @@ defmodule ReqIsLove.Demo do
     extensions: [AshAi]
 
   resources do
-    resource ReqIsLove.Demo.Task
-    resource ReqIsLove.Demo.Note
+    resource(ReqIsLove.Demo.Task)
+    resource(ReqIsLove.Demo.Note)
   end
 
   tools do

@@ -11,55 +11,55 @@ defmodule ReqIsLove.Demo.Task do
     data_layer: Ash.DataLayer.Ets
 
   ets do
-    private? true
+    private?(true)
   end
 
   attributes do
-    uuid_primary_key :id
+    uuid_primary_key(:id)
 
     attribute :title, :string do
-      allow_nil? false
-      public? true
+      allow_nil?(false)
+      public?(true)
     end
 
     attribute :description, :string do
-      public? true
+      public?(true)
     end
 
     attribute :completed, :boolean do
-      default false
-      public? true
+      default(false)
+      public?(true)
     end
 
-    create_timestamp :created_at
-    update_timestamp :updated_at
+    create_timestamp(:created_at)
+    update_timestamp(:updated_at)
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults([:read, :destroy])
 
     create :create do
-      accept [:title, :description]
+      accept([:title, :description])
     end
 
     update :complete do
-      accept []
-      change set_attribute(:completed, true)
+      accept([])
+      change(set_attribute(:completed, true))
 
-      change fn changeset, _context ->
+      change(fn changeset, _context ->
         IO.puts("\n=== COMPLETE ACTION CALLED ===")
         IO.puts("Changeset data: #{inspect(changeset.data)}")
         IO.puts("Changeset attributes: #{inspect(changeset.attributes)}")
         IO.puts("==============================\n")
         changeset
-      end
+      end)
     end
   end
 
   code_interface do
-    define :list_all, action: :read
-    define :create, args: [:title, :description]
-    define :complete
-    define :destroy
+    define(:list_all, action: :read)
+    define(:create, args: [:title, :description])
+    define(:complete)
+    define(:destroy)
   end
 end

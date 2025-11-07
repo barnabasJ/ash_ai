@@ -28,7 +28,6 @@ defmodule ReqIsLoveWeb.MCPCase do
     end
   end
 
-
   @doc """
   Generates a unique session ID for MCP testing.
   """

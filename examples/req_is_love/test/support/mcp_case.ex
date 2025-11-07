@@ -28,13 +28,31 @@ defmodule ReqIsLoveWeb.MCPCase do
     end
   end
 
-  @endpoint ReqIsLoveWeb.Endpoint
 
   @doc """
   Generates a unique session ID for MCP testing.
   """
   def unique_session_id do
     "session_test_#{:rand.uniform(1_000_000)}"
+  end
+
+  @doc """
+  Builds a properly-configured MCP POST connection with required headers.
+
+  ## Parameters
+
+    * `message` - The MCP message map to encode and send
+    * `session_id` - Session ID for the mcp-session-id header
+
+  ## Returns
+
+  A Plug.Conn ready for MCP protocol communication.
+  """
+  def mcp_post_conn(message, session_id) do
+    Plug.Test.conn(:post, "/ash_ai/mcp/messages", Jason.encode!(message))
+    |> Plug.Conn.put_req_header("content-type", "application/json")
+    |> Plug.Conn.put_req_header("accept", "application/json, text/event-stream")
+    |> Plug.Conn.put_req_header("mcp-session-id", session_id)
   end
 
   @doc """
@@ -115,28 +133,31 @@ defmodule ReqIsLoveWeb.MCPCase do
   The session ID string for use in subsequent MCP requests.
   """
   def initialize_mcp_session(conn_opts \\ []) do
+    import ExUnit.Assertions, only: [assert: 1]
+    import Plug.Conn, only: [put_req_header: 3]
+
     session_id = unique_session_id()
 
     # Initialize
     init_conn =
-      Phoenix.ConnTest.build_conn()
-      |> Phoenix.ConnTest.post("/ash_ai/mcp", Jason.encode!(initialize_message()))
-      |> Plug.Conn.put_req_header("content-type", "application/json")
-      |> Plug.Conn.put_req_header("accept", "application/json, text/event-stream")
-      |> Plug.Conn.put_req_header("mcp-session-id", session_id)
+      Plug.Test.conn(:post, "/ash_ai/mcp/messages", Jason.encode!(initialize_message()))
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept", "application/json, text/event-stream")
+      |> put_req_header("mcp-session-id", session_id)
 
     init_response = ReqIsLoveWeb.Endpoint.call(init_conn, conn_opts)
     assert init_response.status == 200
 
     # Send initialized notification
     notif_conn =
-      Phoenix.ConnTest.build_conn()
-      |> Phoenix.ConnTest.post("/ash_ai/mcp", Jason.encode!(initialized_notification()))
-      |> Plug.Conn.put_req_header("content-type", "application/json")
-      |> Plug.Conn.put_req_header("accept", "application/json, text/event-stream")
-      |> Plug.Conn.put_req_header("mcp-session-id", session_id)
+      Plug.Test.conn(:post, "/ash_ai/mcp/messages", Jason.encode!(initialized_notification()))
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept", "application/json, text/event-stream")
+      |> put_req_header("mcp-session-id", session_id)
 
-    _notif_response = ReqIsLoveWeb.Endpoint.call(notif_conn, conn_opts)
+    notif_response = ReqIsLoveWeb.Endpoint.call(notif_conn, conn_opts)
+    # Notifications return 202 Accepted, not 200
+    assert notif_response.status == 202
 
     session_id
   end
